@@ -1,0 +1,44 @@
+@import "../../variables";
+events-container {
+  signups-container {
+    display: flex;
+    height: 100%;
+    align-items: stretch;
+  }
+  @media only screen and (max-width: 600px) {
+    signups-container {
+      flex-flow: row wrap;
+    }
+  }
+  signup-dates {
+    display: flex;
+    margin: 1em;
+    margin-top: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-flow: row wrap;
+    flex: 1 1 auto;
+  }
+  change-date {
+    display: block;
+    flex: 0 0 auto;
+    display: flex;
+    padding: 1em;
+  }
+  change-date button {
+    display: flex;
+    background-color: transparent;
+    border: 1px solid transparent;
+  }
+  change-date button:hover {
+    background-color: transparent;
+  }
+  change-date button:hover icon-holder {
+    background-color: $primary-action;
+  }
+  change-date icon-holder {
+    background-color: $background-grey;
+    padding: 1em;
+    border-radius: 1em;
+  }
+}

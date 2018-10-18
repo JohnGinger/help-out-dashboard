@@ -1,0 +1,81 @@
+@import "../../variables";
+event-block {
+  background-color: $background-grey;
+  padding: 0.5em;
+  margin: 1em;
+  flex: 0 0 250px;
+  margin: 1em;
+  needed-people {
+    border: 2px solid;
+    width: 100%;
+    display: block;
+    height: 1.5em;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  needed-people.not-full {
+    border-color: $secondary-action;
+  }
+  needed-people.full {
+    border-color: $primary-action;
+  }
+  .not-full percentage-covered {
+    background-color: $secondary-action;
+  }
+  .full percentage-covered {
+    background-color: $primary-action;
+  }
+  percentage-covered {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+  people-needed-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+  }
+  @media only screen and (max-width: 600px) {
+    flex: 1 1 auto;
+  }
+  .signed-up-user,
+  .sign-up {
+    border: 1px solid $primary-action;
+    width: 100%;
+    margin: 0;
+    font-size: 1em;
+    cursor: pointer;
+    position: relative;
+  }
+  signed-up-person,
+  .signed-up-user {
+    display: block;
+    background-color: white;
+    margin-bottom: 3px;
+    padding: 0.5em;
+  }
+  .signed-up-user:hover {
+    background-color: $primary-action;
+    cursor: pointer;
+  }
+  .signed-up-user:after {
+    content: "remove";
+    color: $secondary-action;
+    font-size: 0.8em;
+    position: absolute;
+    right: 0.5em;
+  }
+  .sign-up {
+    background-color: $primary-action;
+    color: white;
+    font-weight: bold;
+  }
+}

@@ -1,0 +1,26 @@
+@import "../variables";
+header {
+    background-color: $theme-colour;
+    height: 2em;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+    button {
+        @extend %secondary-button;
+    }
+    img {
+        height: 100%;
+    }
+    user-container {
+        color: black;
+        position: absolute;
+        right: 1em;
+        font-size: 0.8em;
+        display: flex;
+        align-items: center;
+    }
+}

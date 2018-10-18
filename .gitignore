@@ -8,6 +8,8 @@
 
 # production
 /build
+/functions/node_modules
+/.firebase
 
 # misc
 .DS_Store

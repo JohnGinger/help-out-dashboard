@@ -1,17 +1,25 @@
 {
   "name": "help-out-dashboard",
+  "homepage": "https://help-out-dashboard.firebaseapp.com",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "firebase": "^5.5.2",
+    "firebaseui": "^3.4.1",
+    "moment": "^2.22.2",
+    "node-sass": "^4.9.3",
+    "npm": "^6.4.1",
     "react": "^16.5.2",
-    "react-dom": "^16.5.2"
+    "react-datetime": "^2.15.0",
+    "react-dom": "^16.5.2",
+    "react-firebaseui": "^3.1.0"
   },
   "devDependencies": {
     "react-scripts": "2.0.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && firebase deploy",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

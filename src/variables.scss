@@ -1,0 +1,16 @@
+$theme-colour: #f9bd23;
+$primary-action: #77ad68;
+$secondary-action: #f07818;
+$background-grey: #eeeeee;
+%secondary-button {
+    border: 1px solid transparent;
+    background-color: transparent;
+    margin-right: 0.5em;
+    color: $secondary-action;
+    font-size: 1em;
+}
+
+%secondary-button:hover {
+    background-color: $secondary-action;
+    color: white;
+}

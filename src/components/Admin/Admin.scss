@@ -1,0 +1,33 @@
+@import "../../variables.scss";
+admin-panel {
+    admin-actions {
+        display: flex;
+        flex-flow: column;
+        padding: 1em;
+        align-items: flex-start;
+        label,
+        repeat-info {
+            margin-bottom: 1em;
+            display: flex;
+        }
+        label input {
+            margin-left: 1em;
+        }
+        action-strip {
+            display: flex;
+            justify-content: space-between;
+            width: 8em;
+        }
+    }
+    admin-buttons {
+        background-color: black;
+        padding: 0.5em;
+        width: 100%;
+        box-sizing: border-box;
+        color: $secondary-action;
+        display: flex;
+        button {
+            @extend %secondary-button;
+        }
+    }
+}
