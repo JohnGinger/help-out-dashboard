@@ -76,7 +76,18 @@ class App extends Component {
     this.db.collection("event_series").onSnapshot(
       snapshot => {
         const eventSeries = new Map();
-        snapshot.docs.forEach(x => eventSeries.set(x.id, x.data()));
+        snapshot.docs.forEach(x => {
+          const path = window.location.pathname.split("/");
+          if (path[1] === "events") {
+            if (x.id === path[2]) {
+              eventSeries.set(x.id, x.data());
+            } else {
+              eventSeries.set(x.id, { deleted: true });
+            }
+          } else {
+            eventSeries.set(x.id, x.data());
+          }
+        });
         this.setState(
           {
             eventSeries
@@ -161,7 +172,9 @@ class App extends Component {
               return {
                 ...data,
                 id: x.id,
-                what: this.state.eventSeries.get(data.eventSeries).name
+                what: this.state.eventSeries.get(data.eventSeries).name,
+                volunteersVisible: this.state.eventSeries.get(data.eventSeries)
+                  .volunteersVisible
               };
             },
             function(error) {

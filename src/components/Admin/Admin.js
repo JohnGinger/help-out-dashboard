@@ -47,17 +47,14 @@ export default class Admin extends Component {
     );
   }
 
-  addEvent({ what, when, repeat, valid, neededPeople }) {
+  addEvent({ valid, ...eventDetails }) {
     this.setState({ addingEvent: false });
     if (!valid) {
       return;
     }
 
     this.props.addEvent({
-      when,
-      what,
-      neededPeople,
-      repeat,
+      ...eventDetails,
       id: Math.random()
         .toString(36)
         .substring(2)

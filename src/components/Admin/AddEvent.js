@@ -16,6 +16,8 @@ export default class AddEvent extends Component {
       },
       what: "",
       when: moment().unix(),
+      volunteersVisible: true,
+      public: true,
       neededPeople: 0
     };
   }
@@ -41,24 +43,48 @@ export default class AddEvent extends Component {
           />
         </label>
         <label>
-          Repeat?{" "}
-          <input
-            type="checkbox"
-            value={this.state.isRepeated}
-            onChange={() =>
-              this.setState({
-                isRepeated: !this.state.isRepeated
-              })
-            }
-          />
-        </label>
-        <label>
-          Needed People{" "}
+          Targeted Number of Volunteers
           <input
             type="number"
             value={this.state.neededPeople}
             onChange={e =>
               this.setState({ neededPeople: Number(e.target.value) })
+            }
+          />
+        </label>
+        <label>
+          Volunteers Visible?
+          <input
+            type="checkbox"
+            checked={this.state.volunteersVisible}
+            onChange={e =>
+              this.setState({
+                volunteersVisible: !this.state.volunteersVisible
+              })
+            }
+          />
+        </label>
+        <label>
+          Public?
+          <input
+            type="checkbox"
+            checked={this.state.public}
+            onChange={e =>
+              this.setState({
+                public: !this.state.public
+              })
+            }
+          />
+        </label>
+        <label>
+          Repeat?
+          <input
+            type="checkbox"
+            checked={this.state.isRepeated}
+            onChange={() =>
+              this.setState({
+                isRepeated: !this.state.isRepeated
+              })
             }
           />
         </label>
@@ -92,6 +118,8 @@ export default class AddEvent extends Component {
                 what: this.state.what,
                 when: this.state.when,
                 neededPeople: this.state.neededPeople,
+                public: this.state.public,
+                volunteersVisible: this.state.volunteersVisible,
                 valid: true
               };
 
