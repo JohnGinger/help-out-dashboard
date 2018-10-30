@@ -35,7 +35,8 @@ class App extends Component {
         period: [1, "month"]
       },
       eventsList: [],
-      signedUpPeople: new Map()
+      signedUpPeople: new Map(),
+      eventSeries: new Map()
     };
     this.db = {};
     this.eventsListener = () => {};
@@ -48,21 +49,45 @@ class App extends Component {
       timestampsInSnapshots: true
     });
 
-    this.db.collection("users").onSnapshot(snapshot => {
-      const users = new Map();
-      snapshot.docs.forEach(x =>
-        users.set(x.id, {
-          ...x.data()
-        })
-      );
-      this.setState({ users });
-    });
+    this.db.collection("users").onSnapshot(
+      snapshot => {
+        const users = new Map();
+        snapshot.docs.forEach(x =>
+          users.set(x.id, {
+            ...x.data()
+          })
+        );
+        this.setState({ users });
+      },
+      function(error) {
+        console.warn(error);
+      }
+    );
 
-    this.db.collection("admins").onSnapshot(snapshot => {
-      this.setState({ admins: snapshot.docs.map(x => x.id) });
-    });
+    this.db.collection("admins").onSnapshot(
+      snapshot => {
+        this.setState({ admins: snapshot.docs.map(x => x.id) });
+      },
+      function(error) {
+        console.warn(error);
+      }
+    );
 
-    this.setEventsListener();
+    this.db.collection("event_series").onSnapshot(
+      snapshot => {
+        const eventSeries = new Map();
+        snapshot.docs.forEach(x => eventSeries.set(x.id, x.data()));
+        this.setState(
+          {
+            eventSeries
+          },
+          () => this.setEventsListener()
+        );
+      },
+      function(error) {
+        console.warn(error);
+      }
+    );
 
     this.unregisterAuthObserver = firebase
       .auth()
@@ -83,7 +108,11 @@ class App extends Component {
     this.db
       .collection("users")
       .doc(this.state.user.id)
-      .onSnapshot(user => this.setState({ user: user.data() }));
+      .onSnapshot(user => this.setState({ user: user.data() }), function(
+        error
+      ) {
+        console.warn(error);
+      });
   }
 
   componentWillUnmount() {
@@ -92,22 +121,17 @@ class App extends Component {
 
   createUserIfNotExisting(authUser) {
     const userRef = this.db.collection("users").doc(authUser.uid);
-    return userRef
-      .get()
-      .then(user => {
-        if (!user.exists) {
-          const dbUser = {
-            id: authUser.uid,
-            name: authUser.displayName,
-            email: authUser.email
-          };
-          return userRef.set(dbUser).then(() => dbUser);
-        }
-        return user.data();
-      })
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
-      });
+    return userRef.get().then(user => {
+      if (!user.exists) {
+        const dbUser = {
+          id: authUser.uid,
+          name: authUser.displayName,
+          email: authUser.email
+        };
+        return userRef.set(dbUser).then(() => dbUser);
+      }
+      return user.data();
+    });
   }
 
   setEventsListener() {
@@ -126,14 +150,24 @@ class App extends Component {
           .unix()
       )
       .onSnapshot(snapshot => {
-        const events = snapshot.docs.map(x => {
-          this.setPeopleListener(x.id);
-          const data = x.data();
-          return {
-            ...data,
-            id: x.id
-          };
-        });
+        const events = snapshot.docs
+          .filter(
+            x => !this.state.eventSeries.get(x.data().eventSeries).deleted
+          )
+          .map(
+            x => {
+              const data = x.data();
+              this.setPeopleListener(x.id);
+              return {
+                ...data,
+                id: x.id,
+                what: this.state.eventSeries.get(data.eventSeries).name
+              };
+            },
+            function(error) {
+              console.warn(error);
+            }
+          );
         this.setState({
           eventsList: events,
           loading: false
@@ -145,21 +179,25 @@ class App extends Component {
     this.peopleListeners[eventId] && this.peopleListeners[eventId]();
     this.peopleListeners[eventId] = this.db
       .collection(`events/${eventId}/people`)
-      .onSnapshot(snapshot => {
-        const signedUpPeople = this.state.signedUpPeople;
-        signedUpPeople.set(
-          eventId,
-          snapshot.docs.map(x => ({
-            id: x.id,
-            ...this.state.users.get(x.id)
-          }))
-        );
-        this.setState({ signedUpPeople });
-      });
+      .onSnapshot(
+        snapshot => {
+          const signedUpPeople = this.state.signedUpPeople;
+          signedUpPeople.set(
+            eventId,
+            snapshot.docs.map(x => ({
+              id: x.id,
+              ...this.state.users.get(x.id)
+            }))
+          );
+          this.setState({ signedUpPeople });
+        },
+        function(error) {
+          console.warn(error);
+        }
+      );
   }
 
   toggleSignedUp(eventId) {
-    console.log("toggle signed up");
     const userId = this.state.user.id;
     const signedUp =
       this.state.signedUpPeople.has(eventId) &&
@@ -177,8 +215,98 @@ class App extends Component {
     }
   }
 
-  addEvent(event) {
-    return this.db.collection("events").add(event);
+  editEvent({ neededPeople, id, deleteEvent }) {
+    if (deleteEvent) {
+      if (
+        window.confirm(
+          "Are you sure you want to delete this Event? This cannot be undone"
+        )
+      ) {
+        this.db
+          .collection("events")
+          .doc(id)
+          .delete();
+      }
+    } else {
+      this.db
+        .collection("events")
+        .doc(id)
+        .update({
+          neededPeople
+        });
+    }
+  }
+
+  editEventSeries({ name, id, deleteEventSeries }) {
+    if (deleteEventSeries) {
+      if (
+        window.confirm(
+          "Are you sure you want to delete ALL EVENTS IN THIS SERIES?. This could be several hundred events! This cannot be undone"
+        )
+      ) {
+        this.db
+          .collection("event_series")
+          .doc(id)
+          .update({ deleted: true });
+      }
+    } else {
+      this.db
+        .collection("event_series")
+        .doc(id)
+        .update({
+          name
+        });
+    }
+  }
+
+  addEvent({ when, what, neededPeople, repeat, id }) {
+    this.db
+      .collection("event_series")
+      .doc(id)
+      .set({
+        name: what,
+        deleted: false
+      });
+
+    this.db.collection("events").add({
+      date: when,
+      eventSeries: id,
+      neededPeople
+    });
+    this.setState({ loading: true });
+    if (repeat) {
+      const batch = this.db.batch();
+
+      let newDate = moment
+        .unix(when)
+        .add(repeat.frequency, "days")
+        .unix();
+      while (newDate < repeat.until) {
+        newDate = moment
+          .unix(newDate)
+          .add(repeat.frequency, "days")
+          .unix();
+        batch.set(
+          this.db.collection("events").doc(
+            Math.random()
+              .toString(32)
+              .substr(2)
+          ),
+          {
+            date: newDate,
+            eventSeries: id,
+            neededPeople
+          }
+        );
+      }
+
+      return batch
+        .commit()
+        .then(() => {
+          this.setState({ loading: false });
+        })
+        .catch(console.warn);
+    }
   }
 
   updateEvent({ id, event }) {
@@ -225,6 +353,7 @@ class App extends Component {
   }
 
   render() {
+    const isAdmin = this.state.admins.some(id => id === this.state.user.id);
     return (
       <div className="App">
         <Header user={this.state.user} signOut={() => this.signOut()} />
@@ -247,8 +376,13 @@ class App extends Component {
                 user={this.state.user}
                 start={this.state.events.start}
                 period={this.state.events.period}
+                isAdmin={isAdmin}
                 toggleSignedUp={eventId => this.toggleSignedUp(eventId)}
                 setStart={start => this.setEventDisplayRange(start)}
+                editEvent={event => this.editEvent(event)}
+                editEventSeries={eventSeries =>
+                  this.editEventSeries(eventSeries)
+                }
               />
             )}
           </Fragment>

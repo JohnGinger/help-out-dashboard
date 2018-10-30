@@ -4,6 +4,12 @@ service cloud.firestore {
       allow read: if request.auth.uid != null;
       allow write: if exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+
+    match /event_series/{event} {
+      allow read: if request.auth.uid != null;
+      allow write: if exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     match /events/{event}/people/{userId} {
       allow write: if request.auth.uid == userId;
       allow write: if exists(/databases/$(database)/documents/admins/$(request.auth.uid));

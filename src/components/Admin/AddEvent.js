@@ -7,14 +7,15 @@ export default class AddEvent extends Component {
   constructor() {
     super();
     this.state = {
-      repeat: false,
-      valid: true,
+      isRepeated: false,
+      repeat: {
+        frequency: 7,
+        until: moment()
+          .add("5", "years")
+          .unix()
+      },
       what: "",
       when: moment().unix(),
-      repeatFrequency: 7,
-      repeatUntil: moment()
-        .add("5", "years")
-        .unix(),
       neededPeople: 0
     };
   }
@@ -43,8 +44,12 @@ export default class AddEvent extends Component {
           Repeat?{" "}
           <input
             type="checkbox"
-            value={this.state.repeat}
-            onChange={() => this.setState({ repeat: !this.state.repeat })}
+            value={this.state.isRepeated}
+            onChange={() =>
+              this.setState({
+                isRepeated: !this.state.isRepeated
+              })
+            }
           />
         </label>
         <label>
@@ -57,19 +62,25 @@ export default class AddEvent extends Component {
             }
           />
         </label>
-        {this.state.repeat && (
+        {this.state.isRepeated && (
           <repeat-info>
             Repeat every{" "}
             <input
               type="number"
-              value={this.state.repeatFrequency}
-              onChange={e => this.setState({ repeatFrequency: e.target.value })}
+              value={this.state.repeat.frequency}
+              onChange={e =>
+                this.setState({
+                  repeat: { ...this.state.repeat, frequency: e.target.value }
+                })
+              }
             />{" "}
             days, until{" "}
             <Datetime
-              value={moment.unix(this.state.repeatUntil)}
+              value={moment.unix(this.state.repeat.until)}
               onChange={repeatEnd => {
-                this.setState({ repeatUntil: repeatEnd.unix() });
+                this.setState({
+                  repeat: { ...this.state.repeat, until: repeatEnd.unix() }
+                });
               }}
             />
           </repeat-info>
@@ -77,7 +88,17 @@ export default class AddEvent extends Component {
         <action-strip>
           <button
             onClick={() => {
-              this.props.addEvent(this.state);
+              const newEvent = {
+                what: this.state.what,
+                when: this.state.when,
+                neededPeople: this.state.neededPeople,
+                valid: true
+              };
+
+              if (this.state.isRepeated) {
+                newEvent.repeat = this.state.repeat;
+              }
+              this.props.addEvent(newEvent);
             }}
           >
             Add

@@ -47,46 +47,21 @@ export default class Admin extends Component {
     );
   }
 
-  addEvent({
-    what,
-    when,
-    repeat,
-    repeatFrequency,
-    repeatUntil,
-    valid,
-    neededPeople
-  }) {
+  addEvent({ what, when, repeat, valid, neededPeople }) {
     this.setState({ addingEvent: false });
     if (!valid) {
       return;
     }
 
     this.props.addEvent({
-      date: when,
+      when,
       what,
-      neededPeople
+      neededPeople,
+      repeat,
+      id: Math.random()
+        .toString(36)
+        .substring(2)
     });
-    /*
-    if (repeat) {
-      let newDate = moment
-        .unix(when)
-        .add(repeatFrequency, "days")
-        .unix();
-      while (newDate < repeatUntil) {
-        newDate = moment
-          .unix(newDate)
-          .add(repeatFrequency, "days")
-          .unix();
-        eventsToAdd.push(
-          this.props.addEvent({
-            date: newDate,
-            what,
-            people: [],
-            neededPeople
-          })
-        );
-      }
-    }*/
   }
 
   render() {

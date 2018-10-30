@@ -10,7 +10,10 @@ const Events = ({
   period,
   setStart,
   toggleSignedUp,
-  people
+  people,
+  isAdmin,
+  editEvent,
+  editEventSeries
 }) => {
   return (
     <events-container>
@@ -47,8 +50,13 @@ const Events = ({
                   {...event}
                   key={event.date}
                   user={user}
+                  isAdmin={isAdmin}
                   people={people.get(event.id) || []}
                   toggleSignedUp={() => toggleSignedUp(event.id)}
+                  editEvent={editedEvent => editEvent({ ...editedEvent, id: event.id })}
+                  editEventSeries={eventSeries =>
+                    editEventSeries({ ...eventSeries, id: event.eventSeries })
+                  }
                 />
               ))}
             </Fragment>

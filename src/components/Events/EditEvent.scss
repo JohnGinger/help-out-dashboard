@@ -1,0 +1,33 @@
+edit-event {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: grey;
+  display: flex;
+  flex-flow: column;
+  z-index: 3;
+  border: 1px solid grey;
+  justify-content: space-between;
+  padding: 8px;
+  .warning {
+    background-color: red;
+    border: 1px solid red;
+    color: white;
+  }
+  button {
+    margin-top: 8px;
+  }
+  label {
+    display: flex;
+    margin-top: 8px;
+    input {
+      width: 52%;
+    }
+  }
+}
+
+edit-event-button {
+  position: absolute;
+  top: -18px;
+  right: 0;
+}
