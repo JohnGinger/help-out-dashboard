@@ -20,6 +20,7 @@ needed-people {
         top: 0;
         bottom: 0;
         z-index: 1;
+        transition: width 0.5s;
     }
     people-needed-text {
         position: absolute;

@@ -52,7 +52,7 @@ const EventBlock = ({
               You!
             </button>
           );
-        } else if (volunteersVisible) {
+        } else if (volunteersVisible || isAdmin) {
           return (
             <signed-up-person key={person.id}>{person.name}</signed-up-person>
           );

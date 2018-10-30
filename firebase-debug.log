@@ -1,0 +1,47 @@
+[debug] [2018-10-30T23:02:45.945Z] ----------------------------------------------------------------------
+[debug] [2018-10-30T23:02:45.948Z] Command:       /usr/local/bin/node /Users/johnginger/.nvm/versions/node/v8.4.0/bin/firebase deploy
+[debug] [2018-10-30T23:02:45.948Z] CLI Version:   5.1.1
+[debug] [2018-10-30T23:02:45.948Z] Platform:      darwin
+[debug] [2018-10-30T23:02:45.948Z] Node Version:  v8.10.0
+[debug] [2018-10-30T23:02:45.949Z] Time:          Tue Oct 30 2018 23:02:45 GMT+0000 (GMT)
+[debug] [2018-10-30T23:02:45.949Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-10-30T23:02:45.962Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-10-30T23:02:45.963Z] > authorizing via signed-in user
+[debug] [2018-10-30T23:02:45.963Z] [iam] checking project help-out-dashboard for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2018-10-30T23:02:45.965Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-10-30T23:02:45.966Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2018-10-30T23:02:46.145Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-30T23:02:46.158Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/help-out-dashboard:testIamPermissions  
+
+[debug] [2018-10-30T23:02:46.976Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-30T23:02:46.977Z] >>> HTTP REQUEST GET https://firebase.googleapis.com/v1beta1/projects/help-out-dashboard  
+ 
+[debug] [2018-10-30T23:02:47.206Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'help-out-dashboard'...
+[info] 
+[info] i  deploying firestore, hosting
+[info] i  firestore: checking firestore.rules for compilation errors...
+[debug] [2018-10-30T23:02:47.216Z] >>> HTTP REQUEST POST https://firebaserules.googleapis.com/v1/projects/help-out-dashboard:test  
+
+[debug] [2018-10-30T23:02:48.306Z] <<< HTTP RESPONSE 200
+[info] ✔  firestore: rules file firestore.rules compiled successfully
+[debug] [2018-10-30T23:02:48.308Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/help-out-dashboard/versions  
+
+[debug] [2018-10-30T23:02:49.843Z] <<< HTTP RESPONSE 200
+[info] i  firestore: uploading rules firestore.rules...
+[debug] [2018-10-30T23:02:49.844Z] >>> HTTP REQUEST POST https://firebaserules.googleapis.com/v1/projects/help-out-dashboard/rulesets  
+
+[debug] [2018-10-30T23:02:49.845Z] >>> HTTP REQUEST GET https://firestore.googleapis.com/v1beta1/projects/help-out-dashboard/databases/(default)/indexes  
+ 
+[debug] [2018-10-30T23:02:50.762Z] <<< HTTP RESPONSE 200
+[debug] [2018-10-30T23:02:50.762Z] [rules] created ruleset projects/help-out-dashboard/rulesets/8ca22127-50ea-481b-ba4c-bf4ac6586db1
+[debug] [2018-10-30T23:02:50.763Z] <<< HTTP RESPONSE 200
+[info] i  hosting[help-out-dashboard]: beginning deploy...
+[info] i  hosting[help-out-dashboard]: found 17 files in build
+[debug] [2018-10-30T23:02:51.478Z] [hosting] hash cache [YnVpbGQ] stored for 17 files
+[debug] [2018-10-30T23:02:51.478Z] [hosting][hash queue][FINAL]
+[debug] [2018-10-30T23:02:51.478Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/help-out-dashboard/versions/bae278a4ad2b3c89:populateFiles  
+ <request body omitted>
