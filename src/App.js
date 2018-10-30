@@ -49,7 +49,27 @@ class App extends Component {
       timestampsInSnapshots: true
     });
 
-    this.db.collection("users").onSnapshot(
+    this.unregisterAuthObserver = firebase
+      .auth()
+      .onAuthStateChanged(async authUser => {
+        const isSignedIn = !!authUser;
+        if (!isSignedIn) {
+          return;
+        } else {
+          await this.setUsersListener();
+          await this.setAdminListener();
+          await this.setEventSeriesListener();
+
+          await this.createUserIfNotExisting(authUser);
+          this.setState({ user: { id: authUser.uid } }, () => {
+            this.setUserListener();
+          });
+        }
+      });
+  }
+
+  setUsersListener() {
+    return this.db.collection("users").onSnapshot(
       snapshot => {
         const users = new Map();
         snapshot.docs.forEach(x =>
@@ -63,8 +83,9 @@ class App extends Component {
         console.warn(error);
       }
     );
-
-    this.db.collection("admins").onSnapshot(
+  }
+  setAdminListener() {
+    return this.db.collection("admins").onSnapshot(
       snapshot => {
         this.setState({ admins: snapshot.docs.map(x => x.id) });
       },
@@ -72,8 +93,10 @@ class App extends Component {
         console.warn(error);
       }
     );
+  }
 
-    this.db.collection("event_series").onSnapshot(
+  setEventSeriesListener() {
+    return this.db.collection("event_series").onSnapshot(
       snapshot => {
         const eventSeries = new Map();
         snapshot.docs.forEach(x => eventSeries.set(x.id, x.data()));
@@ -88,20 +111,6 @@ class App extends Component {
         console.warn(error);
       }
     );
-
-    this.unregisterAuthObserver = firebase
-      .auth()
-      .onAuthStateChanged(async authUser => {
-        const isSignedIn = !!authUser;
-        if (!isSignedIn) {
-          return;
-        } else {
-          await this.createUserIfNotExisting(authUser);
-          this.setState({ user: { id: authUser.uid } }, () => {
-            this.setUserListener();
-          });
-        }
-      });
   }
 
   setUserListener() {

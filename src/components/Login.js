@@ -14,10 +14,13 @@ const uiConfig = {
 };
 
 const Login = () => (
-  <StyledFirebaseAuth
-    className="login-container"
-    uiConfig={uiConfig}
-    firebaseAuth={firebase.auth()}
-  />
+  <login-container>
+    <h4>Sign in or type in your email to create an account</h4>
+    <StyledFirebaseAuth
+      className="login-container"
+      uiConfig={uiConfig}
+      firebaseAuth={firebase.auth()}
+    />
+  </login-container>
 );
 export default Login;
