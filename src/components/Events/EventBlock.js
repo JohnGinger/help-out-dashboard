@@ -8,7 +8,7 @@ import "./EventBlock.scss";
 const EventBlock = ({
   eventSeries,
   date,
-  what,
+  name,
   people,
   user,
   isAdmin,
@@ -20,7 +20,7 @@ const EventBlock = ({
 }) => {
   const getEmailLinkToSignedUp = () => {
     return `mailto:${user.email}?&bcc=${people.map(x => x.email)}
-    &subject=${what || "The event you signed up to"} on ${moment
+    &subject=${name || "The event you signed up to"} on ${moment
       .unix(date)
       .format("Do MMMM h:mma")}`;
   };
@@ -29,14 +29,14 @@ const EventBlock = ({
     <event-block>
       {isAdmin && (
         <EditEvent
-          what={what}
+          name={name}
           neededPeople={neededPeople}
           editEvent={event => editEvent(event)}
           editEventSeries={eventSeries => editEventSeries(eventSeries)}
         />
       )}
       <h3>{moment.unix(date).format("Do MMMM h:mma")}</h3>
-      {what && <h4>{what}</h4>}
+      {name && <h4>{name}</h4>}
       <NeededPeople
         neededPeople={neededPeople}
         numberSignedUp={people.length}

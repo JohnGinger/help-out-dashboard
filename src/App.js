@@ -76,18 +76,7 @@ class App extends Component {
     this.db.collection("event_series").onSnapshot(
       snapshot => {
         const eventSeries = new Map();
-        snapshot.docs.forEach(x => {
-          const path = window.location.pathname.split("/");
-          if (path[1] === "events") {
-            if (x.id === path[2]) {
-              eventSeries.set(x.id, x.data());
-            } else {
-              eventSeries.set(x.id, { deleted: true });
-            }
-          } else {
-            eventSeries.set(x.id, x.data());
-          }
-        });
+        snapshot.docs.forEach(x => eventSeries.set(x.id, x.data()));
         this.setState(
           {
             eventSeries
@@ -162,19 +151,31 @@ class App extends Component {
       )
       .onSnapshot(snapshot => {
         const events = snapshot.docs
-          .filter(
-            x => !this.state.eventSeries.get(x.data().eventSeries).deleted
-          )
+          .map(x => ({
+            doc: x,
+            eventSeries: {
+              ...this.state.eventSeries.get(x.data().eventSeries),
+              id: x.data().eventSeries
+            }
+          }))
+          .filter(x => {
+            const path = window.location.pathname.split("/");
+            if (x.eventSeries.deleted) {
+              return false;
+            } else if (path[1] === "events") {
+              return x.eventSeries.id === path[2];
+            } else {
+              return x.eventSeries.public || this.isAdmin();
+            }
+          })
           .map(
             x => {
-              const data = x.data();
+              const data = x.doc.data();
               this.setPeopleListener(x.id);
               return {
                 ...data,
-                id: x.id,
-                what: this.state.eventSeries.get(data.eventSeries).name,
-                volunteersVisible: this.state.eventSeries.get(data.eventSeries)
-                  .volunteersVisible
+                ...x.eventSeries,
+                id: x.id
               };
             },
             function(error) {
@@ -272,12 +273,12 @@ class App extends Component {
     }
   }
 
-  addEvent({ when, what, neededPeople, repeat, id }) {
+  addEvent({ when, name, neededPeople, repeat, id }) {
     this.db
       .collection("event_series")
       .doc(id)
       .set({
-        name: what,
+        name,
         deleted: false
       });
 
@@ -360,13 +361,17 @@ class App extends Component {
     );
   }
 
+  isAdmin() {
+    return this.state.admins.some(id => id === this.state.user.id);
+  }
+
   signOut() {
     firebase.auth().signOut();
     this.setState({ user: {} });
   }
 
   render() {
-    const isAdmin = this.state.admins.some(id => id === this.state.user.id);
+    const isAdmin = this.isAdmin();
     return (
       <div className="App">
         <Header user={this.state.user} signOut={() => this.signOut()} />

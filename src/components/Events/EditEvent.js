@@ -10,7 +10,7 @@ export default class EditEvent extends React.Component {
     };
   }
   render() {
-    const { what, neededPeople, editEvent, editEventSeries } = this.props;
+    const { name, neededPeople, editEvent, editEventSeries } = this.props;
 
     if (this.state.editing) {
       return (
@@ -41,7 +41,7 @@ export default class EditEvent extends React.Component {
             Event series name
             <input
               type="text"
-              placeholder={what}
+              placeholder={name}
               value={this.state.eventSeriesName}
               onChange={e => this.setState({ eventSeriesName: e.target.value })}
             />

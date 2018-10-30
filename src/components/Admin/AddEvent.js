@@ -14,7 +14,7 @@ export default class AddEvent extends Component {
           .add("5", "years")
           .unix()
       },
-      what: "",
+      name: "",
       when: moment().unix(),
       volunteersVisible: true,
       public: true,
@@ -26,11 +26,11 @@ export default class AddEvent extends Component {
       <add-event class="admin-section">
         <h3>New Event</h3>
         <label>
-          What
+          Event Name
           <input
             type="text"
-            value={this.state.what}
-            onChange={e => this.setState({ what: e.target.value })}
+            value={this.state.name}
+            onChange={e => this.setState({ name: e.target.value })}
           />
         </label>
         <label>
@@ -115,7 +115,7 @@ export default class AddEvent extends Component {
           <button
             onClick={() => {
               const newEvent = {
-                what: this.state.what,
+                name: this.state.name,
                 when: this.state.when,
                 neededPeople: this.state.neededPeople,
                 public: this.state.public,
