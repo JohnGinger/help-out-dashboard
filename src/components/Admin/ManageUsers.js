@@ -4,12 +4,45 @@ export default class ManageUsers extends Component {
   constructor() {
     super();
     this.state = {
-      users: new Map()
+      changedUsers: new Map(),
+      changedAdmins: new Map()
     };
   }
-  componentDidMount() {
-    this.setState({ users: this.props.users });
+
+  isAdmin(id) {
+    const wasAnAdmin = this.props.admins.some(adminId => adminId === id);
+    if (this.state.changedAdmins.has(id)) {
+      return this.state.changedAdmins.get(id);
+    }
+    return wasAnAdmin;
   }
+
+  toggleIfAdmin(id) {
+    const changedAdmins = this.state.changedAdmins;
+    if (changedAdmins.get(id) === true) {
+      changedAdmins.set(id, false);
+    } else {
+      changedAdmins.set(id, true);
+    }
+    this.setState({ changedAdmins });
+  }
+
+  changeName(id, newName) {
+    const changedUsers = this.state.changedUsers;
+    changedUsers.set(id, { ...this.props.users.get(id), name: newName });
+    this.setState({ changedUsers });
+  }
+
+  getUsers() {
+    return Array.from(this.props.users).map(([id, { name, email }]) => {
+      if (this.state.changedUsers.has(id)) {
+        return this.state.changedUsers.get(id);
+      } else {
+        return { id, name, email };
+      }
+    });
+  }
+
   render() {
     return (
       <manage-users class="admin-section">
@@ -18,66 +51,48 @@ export default class ManageUsers extends Component {
           <thead>
             <tr>
               <th>Username</th>
+              <th>Email</th>
               <th>Admin Status</th>
             </tr>
           </thead>
           <tbody>
-            {Array.from(this.state.users).map(
-              ([id, { admin, name, email }]) => (
-                <tr key={id}>
-                  <td>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={e => {
-                        const newUsers = this.state.users;
-                        newUsers.set(id, {
-                          name: e.target.value,
-                          id,
-                          admin,
-                          email,
-                          changed: true
-                        });
-                        this.setState({ users: newUsers });
-                      }}
-                    />
-                    {id === this.props.user.id && " (You)"}
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={admin}
-                      onChange={() => {
-                        const newUsers = this.state.users;
-                        newUsers.set(id, {
-                          name,
-                          id,
-                          email,
-                          admin: !admin,
-                          changed: true
-                        });
-                        this.setState({ users: newUsers });
-                      }}
-                      disabled={id === this.props.user.id}
-                    />
-                  </td>
-                </tr>
-              )
-            )}
+            {this.getUsers().map(({ id, name, email }) => (
+              <tr key={id}>
+                <td>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => this.changeName(id, e.target.value)}
+                  />
+                  {id === this.props.user.id && " (You)"}
+                </td>
+                <td>{email}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={this.isAdmin(id)}
+                    onChange={() => this.toggleIfAdmin(id)}
+                    disabled={id === this.props.user.id}
+                  />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <action-strip>
           <button
             onClick={() => {
-              this.props.changeUsers({
+              this.props.update({
                 valid: true,
-                users: this.state.users
+                users: this.state.changedUsers,
+                admins: this.state.changedAdmins
               });
+              this.setState({ changedAdmins: [], changedUsers: [] });
             }}
           >
             Save
           </button>
-          <button onClick={() => this.props.changeUsers({ valid: false })}>
+          <button onClick={() => this.props.update({ valid: false })}>
             Cancel
           </button>
         </action-strip>

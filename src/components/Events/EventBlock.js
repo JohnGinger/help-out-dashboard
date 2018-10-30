@@ -1,25 +1,15 @@
 import React from "react";
 import moment from "moment";
 import "./EventBlock.scss";
-import firebase from "firebase/app";
 
 const EventBlock = ({
   date,
   what,
   people,
   user,
-  changePeopleSignedUp,
-  neededPeople
+  neededPeople,
+  toggleSignedUp
 }) => {
-  const changeIfSignedUp = ({ event, isSignedUp }) => {
-    const { id } = user;
-    const newPeople = isSignedUp
-      ? firebase.firestore.FieldValue.arrayUnion(id)
-      : firebase.firestore.FieldValue.arrayRemove(id);
-
-    changePeopleSignedUp(newPeople);
-  };
-
   return (
     <event-block>
       <h3>{moment.unix(date).format("Do MMMM h:mma")}</h3>
@@ -34,7 +24,7 @@ const EventBlock = ({
             <button
               key={person.id}
               className="signed-up-user"
-              onClick={() => changeIfSignedUp({ isSignedUp: false })}
+              onClick={() => toggleSignedUp()}
             >
               {person.name}
             </button>
@@ -43,10 +33,7 @@ const EventBlock = ({
           )
       )}
       {!people.some(p => p.id === user.id) && (
-        <button
-          className="sign-up"
-          onClick={() => changeIfSignedUp({ isSignedUp: true })}
-        >
+        <button className="sign-up" onClick={() => toggleSignedUp()}>
           + {user.name}
         </button>
       )}

@@ -3,7 +3,15 @@ import EventBlock from "./EventBlock";
 import moment from "moment";
 import "./Events.scss";
 
-const Events = ({ events, user, start, period, updateEvent, setStart }) => {
+const Events = ({
+  events,
+  user,
+  start,
+  period,
+  setStart,
+  toggleSignedUp,
+  people
+}) => {
   return (
     <events-container>
       <h3>
@@ -31,7 +39,7 @@ const Events = ({ events, user, start, period, updateEvent, setStart }) => {
         </change-date>
         <signup-dates>
           {events.length === 0 ? (
-            "SorryThere are no events for these dates"
+            "Sorry - There are no events for these dates"
           ) : (
             <Fragment>
               {events.map(event => (
@@ -39,12 +47,8 @@ const Events = ({ events, user, start, period, updateEvent, setStart }) => {
                   {...event}
                   key={event.date}
                   user={user}
-                  changePeopleSignedUp={people =>
-                    updateEvent({
-                      id: event.id,
-                      people
-                    })
-                  }
+                  people={people.get(event.id) || []}
+                  toggleSignedUp={() => toggleSignedUp(event.id)}
                 />
               ))}
             </Fragment>

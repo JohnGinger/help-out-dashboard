@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from "react";
-import firebase from "firebase/app";
-import moment from "moment";
+//import moment from "moment";
 
 import AddEvent from "./AddEvent";
 import ChangeDetails from "./ChangeDetails";
@@ -21,40 +20,31 @@ export default class Admin extends Component {
     if (!valid) {
       return;
     }
-    this.props
-      .changeUser({
-        name,
-        email,
-        id
-      })
-      .then(() => firebase.auth().currentUser.updateEmail(email))
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
-      });
-    this.props.refreshCurrentUser();
+    this.props.changeUser({
+      name,
+      email,
+      id
+    });
   }
 
-  changeUsers({ valid, users }) {
+  updateUsers({ valid, users, admins }) {
     this.setState({ manageUsers: false });
     if (!valid) {
       return;
     }
-    const newUsers = this.state.users;
 
-    const changedUsers = Array.from(users).filter(
-      ([id, { changed }]) => changed
-    );
-    changedUsers.forEach(([userId, userDetails]) => {
+    Array.from(users).forEach(([userId, userDetails]) => {
       const filteredUserDetails = {
         id: userId,
-        admin: userDetails.admin,
         email: userDetails.email,
         name: userDetails.name
       };
       this.props.changeUser(filteredUserDetails);
-      newUsers.set(userId, filteredUserDetails);
     });
-    this.props.refreshUsers();
+
+    Array.from(admins).forEach(([id, isAdmin]) =>
+      this.props.setAdmin({ id, isAdmin })
+    );
   }
 
   addEvent({
@@ -70,15 +60,13 @@ export default class Admin extends Component {
     if (!valid) {
       return;
     }
-    const eventsToAdd = [
-      this.props.addEvent({
-        date: when,
-        what,
-        people: [],
-        neededPeople
-      })
-    ];
 
+    this.props.addEvent({
+      date: when,
+      what,
+      neededPeople
+    });
+    /*
     if (repeat) {
       let newDate = moment
         .unix(when)
@@ -98,23 +86,18 @@ export default class Admin extends Component {
           })
         );
       }
-    }
-
-    Promise.all(eventsToAdd)
-      .then(() => this.props.refreshEvents())
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
-      });
+    }*/
   }
 
   render() {
+    const isAdmin = this.props.admins.some(id => id === this.props.user.id);
     return (
       <admin-panel>
         <admin-buttons>
           <button onClick={() => this.setState({ changeDetails: true })}>
             Change Details
           </button>
-          {this.props.user.admin && (
+          {isAdmin && (
             <Fragment>
               <button onClick={() => this.setState({ addingEvent: true })}>
                 Add Event
@@ -137,9 +120,10 @@ export default class Admin extends Component {
           )}
           {this.state.manageUsers && (
             <ManageUsers
-              changeUsers={users => this.changeUsers(users)}
+              update={e => this.updateUsers(e)}
               user={this.props.user}
               users={this.props.users}
+              admins={this.props.admins}
             />
           )}
         </admin-actions>

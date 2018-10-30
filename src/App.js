@@ -27,15 +27,19 @@ class App extends Component {
     this.state = {
       loading: true,
       user: {},
+      admins: [],
       events: {
         start: moment()
           .startOf("month")
           .unix(),
-        period: [1, "month"],
-        list: []
-      }
+        period: [1, "month"]
+      },
+      eventsList: [],
+      signedUpPeople: new Map()
     };
     this.db = {};
+    this.eventsListener = () => {};
+    this.peopleListeners = [];
   }
 
   componentDidMount() {
@@ -44,17 +48,42 @@ class App extends Component {
       timestampsInSnapshots: true
     });
 
+    this.db.collection("users").onSnapshot(snapshot => {
+      const users = new Map();
+      snapshot.docs.forEach(x =>
+        users.set(x.id, {
+          ...x.data()
+        })
+      );
+      this.setState({ users });
+    });
+
+    this.db.collection("admins").onSnapshot(snapshot => {
+      this.setState({ admins: snapshot.docs.map(x => x.id) });
+    });
+
+    this.setEventsListener();
+
     this.unregisterAuthObserver = firebase
       .auth()
       .onAuthStateChanged(async authUser => {
         const isSignedIn = !!authUser;
         if (!isSignedIn) {
           return;
+        } else {
+          await this.createUserIfNotExisting(authUser);
+          this.setState({ user: { id: authUser.uid } }, () => {
+            this.setUserListener();
+          });
         }
-        await this.createUserIfNotExisting(authUser);
-        await this.refreshCurrentUser(authUser.uid);
-        await this.refreshUsers();
       });
+  }
+
+  setUserListener() {
+    this.db
+      .collection("users")
+      .doc(this.state.user.id)
+      .onSnapshot(user => this.setState({ user: user.data() }));
   }
 
   componentWillUnmount() {
@@ -70,7 +99,6 @@ class App extends Component {
           const dbUser = {
             id: authUser.uid,
             name: authUser.displayName,
-            admin: false,
             email: authUser.email
           };
           return userRef.set(dbUser).then(() => dbUser);
@@ -82,40 +110,11 @@ class App extends Component {
       });
   }
 
-  refreshCurrentUser(id) {
-    const userId = id || this.state.user.id;
-    return this.db
-      .collection("users")
-      .doc(userId)
-      .get()
-      .then(user => this.setState({ user: user.data() }))
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
-      });
-  }
-
-  refreshUsers() {
-    return this.db
-      .collection("users")
-      .get()
-      .then(snapshot => {
-        const users = new Map();
-        snapshot.docs.forEach(x =>
-          users.set(x.id, {
-            ...x.data()
-          })
-        );
-        this.setState({ users });
-      })
-      .then(() => this.refreshEvents())
-      .catch(function(error) {
-        console.log("Error getting documents: ", error);
-      });
-  }
-
-  refreshEvents() {
+  setEventsListener() {
+    this.eventsListener();
+    this.peopleListeners.forEach(x => x());
     this.setState({ loading: true });
-    const eventsRef = this.db
+    this.eventsListener = this.db
       .collection("events")
       .where("date", ">", this.state.events.start)
       .where(
@@ -125,49 +124,99 @@ class App extends Component {
           .unix(this.state.events.start)
           .add(...this.state.events.period)
           .unix()
-      );
-
-    eventsRef
-      .get()
-      .then(snapshot => {
+      )
+      .onSnapshot(snapshot => {
         const events = snapshot.docs.map(x => {
+          this.setPeopleListener(x.id);
           const data = x.data();
           return {
             ...data,
-            people: data.people.map(id => this.state.users.get(id)),
             id: x.id
           };
         });
         this.setState({
-          events: { ...this.state.events, list: events },
+          eventsList: events,
           loading: false
         });
-      })
-      .catch(function(error) {
-        console.log("Error getting documents: ", error);
       });
   }
 
-  updateEvent(event) {
+  setPeopleListener(eventId) {
+    this.peopleListeners[eventId] && this.peopleListeners[eventId]();
+    this.peopleListeners[eventId] = this.db
+      .collection(`events/${eventId}/people`)
+      .onSnapshot(snapshot => {
+        const signedUpPeople = this.state.signedUpPeople;
+        signedUpPeople.set(
+          eventId,
+          snapshot.docs.map(x => ({
+            id: x.id,
+            ...this.state.users.get(x.id)
+          }))
+        );
+        this.setState({ signedUpPeople });
+      });
+  }
+
+  toggleSignedUp(eventId) {
+    console.log("toggle signed up");
+    const userId = this.state.user.id;
+    const signedUp =
+      this.state.signedUpPeople.has(eventId) &&
+      this.state.signedUpPeople.get(eventId).some(x => x.id === userId);
+    if (signedUp) {
+      this.db
+        .collection(`events/${eventId}/people`)
+        .doc(this.state.user.id)
+        .delete();
+    } else {
+      this.db
+        .collection(`events/${eventId}/people`)
+        .doc(this.state.user.id)
+        .set({});
+    }
+  }
+
+  addEvent(event) {
+    return this.db.collection("events").add(event);
+  }
+
+  updateEvent({ id, event }) {
     this.db
       .collection("events")
-      .doc(event.id)
-      .update(event)
-      .then(() => this.refreshEvents())
-      .catch(function(error) {
-        console.error("Error adding document: ", error);
-      });
+      .doc(id)
+      .update(event);
+  }
+
+  setAdmin({ id, isAdmin }) {
+    if (isAdmin) {
+      this.db
+        .collection("admins")
+        .doc(id)
+        .set({});
+    } else if (this.state.admins.some(adminId => adminId === id)) {
+      this.db
+        .collection("admins")
+        .doc(id)
+        .delete();
+    }
   }
 
   changeUser(user) {
-    return this.db
+    if (user.id === this.state.user.id) {
+      firebase.auth().currentUser.updateEmail(user.email);
+    }
+
+    this.db
       .collection("users")
       .doc(user.id)
       .set(user);
   }
 
-  addEvent(event) {
-    return this.db.collection("events").add(event);
+  setEventDisplayRange(start) {
+    this.setState({ events: { ...this.state.events, start } }, () =>
+      this.setEventsListener()
+    );
   }
 
   signOut() {
@@ -184,31 +233,22 @@ class App extends Component {
             <Admin
               user={this.state.user}
               users={this.state.users}
-              refreshUsers={() => this.refreshUsers()}
-              refreshCurrentUser={() => this.refreshCurrentUser()}
-              refreshEvents={() => this.refreshEvents()}
+              admins={this.state.admins}
               changeUser={user => this.changeUser(user)}
+              setAdmin={id => this.setAdmin(id)}
               addEvent={event => this.addEvent(event)}
             />
             {this.state.loading ? (
               <Loader />
             ) : (
               <Events
-                events={this.state.events.list}
+                events={this.state.eventsList}
+                people={this.state.signedUpPeople}
                 user={this.state.user}
-                changeIfSignedUp={({ isSignedUp, event }) =>
-                  this.changeIfSignedUp({ isSignedUp, event })
-                }
-                updateEvent={event => this.updateEvent(event)}
-                getEvents={this.refreshEvents}
                 start={this.state.events.start}
                 period={this.state.events.period}
-                setStart={start =>
-                  this.setState(
-                    { events: { ...this.state.events, start } },
-                    () => this.refreshEvents()
-                  )
-                }
+                toggleSignedUp={eventId => this.toggleSignedUp(eventId)}
+                setStart={start => this.setEventDisplayRange(start)}
               />
             )}
           </Fragment>
