@@ -180,11 +180,11 @@ class App extends Component {
           .map(
             x => {
               const data = x.doc.data();
-              this.setPeopleListener(x.id);
+              this.setPeopleListener(x.doc.id);
               return {
                 ...data,
                 ...x.eventSeries,
-                id: x.id
+                id: x.doc.id
               };
             },
             function(error) {
